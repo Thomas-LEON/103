@@ -18,75 +18,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# =====================================================================
-# DESIGN SYSTEM (Corporate Neutral — Emerald Accent)
-# =====================================================================
+# Petit nettoyage Streamlit de base (cacher le menu hamburger)
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    
-    .stApp { background-color: #f4f6f8; font-family: 'Inter', sans-serif; }
-    h1, h2, h3, h4, p, span, div { font-family: 'Inter', sans-serif; }
-
-    /* Header */
-    .dashboard-header { padding: 15px 0 25px 0; }
-    .dashboard-header h1 { font-size: 2.2rem; font-weight: 800; color: #1a1a1a; margin-bottom: 2px; }
-    .dashboard-header p { color: #6c757d; font-size: 1rem; margin-top: 0; }
-
-    /* Top Row Layout */
-    .top-row { display: flex; gap: 20px; margin-bottom: 30px; align-items: stretch; }
-    
-    /* Traffic Light & Trend Box */
-    .status-box {
-        flex: 0 0 280px; padding: 25px 20px; border-radius: 8px;
-        display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: white;
-    }
-    .status-box.red { background: linear-gradient(135deg, #d32f2f, #e53935); }
-    .status-box.amber { background: linear-gradient(135deg, #f57c00, #ff9800); }
-    .status-box.green { background: linear-gradient(135deg, #388e3c, #4caf50); }
-    .status-box h2 { margin: 0; font-size: 1.8rem; font-weight: 800; color: white; }
-    .status-box .trend { font-size: 1rem; font-weight: 600; margin-top: 8px; opacity: 0.9; }
-
-    /* BLUF Box */
-    .bluf-box {
-        flex: 1; padding: 25px 30px; border-radius: 8px; background-color: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        display: flex; flex-direction: column; justify-content: center;
-        border-left: 4px solid #00915A;
-    }
-    .bluf-box h3 { margin: 0 0 10px 0; font-size: 0.9rem; text-transform: uppercase; color: #6c757d; font-weight: 700; letter-spacing: 1px; }
-    .bluf-box p { margin: 0; font-size: 1.3rem; font-weight: 600; color: #1a1a1a; line-height: 1.5; }
-
-    /* Pillar Cards */
-    .pillar-card {
-        background-color: white; border-radius: 8px; padding: 25px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03); height: 100%; 
-    }
-    .pillar-card h4 {
-        font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
-        color: #00915A; margin-bottom: 15px; font-weight: 700;
-        display: flex; align-items: center; gap: 8px;
-    }
-    .pillar-card .pillar-body { font-size: 0.95rem; line-height: 1.7; color: #333; }
-
-    /* Section Titles */
-    .section-title {
-        font-size: 1.1rem; font-weight: 700; color: #1a1a1a;
-        margin-top: 40px; margin-bottom: 20px;
-    }
-
-    /* Expander styling */
-    .streamlit-expanderHeader { font-weight: 600; font-size: 1.05rem; color: #2D2D2D; background-color: white; border-radius: 6px; }
-    
-    /* Metadata tags */
-    .meta-tag {
-        display: inline-block; background-color: #f1f3f5; color: #495057;
-        padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-right: 8px;
-        font-weight: 600; border: 1px solid #e9ecef;
-    }
-
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
+    #MainMenu {visibility: hidden;} 
+    footer {visibility: hidden;} 
+    header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -246,12 +183,14 @@ EXAMPLE OF EXACT EXPECTED OUTPUT:
             
     return None, debug_logs
 
+# Helper pour formater les puces nativement
 def format_bullets(data_item):
-    if isinstance(data_item, list): return "<br>".join([f"• {item}" for item in data_item])
-    return str(data_item).replace("\n", "<br>")
+    if isinstance(data_item, list): 
+        return "\n".join([f"- {item}" for item in data_item])
+    return str(data_item)
 
 # =====================================================================
-# 🖥️ 4. USER INTERFACE (V7)
+# 🖥️ 4. USER INTERFACE (V8 PURE STREAMLIT)
 # =====================================================================
 with st.spinner("Synchronising historical intelligence feed..."):
     reports_data, error = fetch_recent_reports(limit=7)
@@ -261,11 +200,11 @@ if error or not reports_data:
     st.stop()
 
 # --- SIDEBAR: HISTORY SELECTION ---
-st.sidebar.markdown("### 📅 Intelligence Archive")
-st.sidebar.markdown("Select a date to view the strategic assessment for that day.")
-
-report_options = [r[0] for r in reports_data]
-selected_filename = st.sidebar.radio("Past 7 Days", report_options)
+with st.sidebar:
+    st.title("📅 Archive")
+    st.caption("Select a date to view the strategic assessment.")
+    report_options = [r[0] for r in reports_data]
+    selected_filename = st.radio("Past 7 Days", report_options, label_visibility="collapsed")
 
 # Get the content for the selected date
 selected_content = next(content for name, content in reports_data if name == selected_filename)
@@ -273,12 +212,9 @@ report_date_clean = selected_filename.replace(".md", "").replace("_", " ")
 
 incidents = parse_incidents(selected_content)
 
-st.markdown(f"""
-<div class="dashboard-header">
-    <h1>Strategic Cyber Threat Briefing</h1>
-    <p>Executive assessment for <b>{report_date_clean}</b> | {len(incidents)} severe incidents analyzed</p>
-</div>
-""", unsafe_allow_html=True)
+st.title("Strategic Cyber Threat Briefing")
+st.caption(f"Executive assessment for **{report_date_clean}** | {len(incidents)} actionable incidents analyzed")
+st.divider()
 
 # Context reduction
 condensed_report = ""
@@ -287,50 +223,62 @@ for inc in incidents:
     if inc['country']: condensed_report += f"  TARGETS: {inc['country']} / {inc['companies']}\n"
     condensed_report += f"  SUMMARY: {inc['overview']}\n\n"
 
-# AI Generation for the SELECTED report
+# AI Generation
 with st.spinner(f"🧠 Synthesizing executive brief for {report_date_clean}..."):
     auth_ctx = init_llm_auth()
     brief, debug_logs = generate_executive_brief(condensed_report, report_date_clean, auth_ctx)
 
-# --- THE TOP ROW (F-Pattern) ---
+# --- THE TOP ROW (PURE NATIVE) ---
 if brief and isinstance(brief, dict) and "bluf" in brief:
     
     tl = str(brief.get("traffic_light", "AMBER")).upper()
-    if "RED" in tl:
-        status_class, status_title, icon = "red", "CRITICAL RISK", "🚨"
-    elif "GREEN" in tl:
-        status_class, status_title, icon = "green", "STABLE", "✅"
-    else:
-        status_class, status_title, icon = "amber", "ELEVATED RISK", "⚠️"
-        
     trend = str(brief.get("trend", "Stable")).title()
-    if "Up" in trend or "Hausse" in trend: trend_icon = "📈 Trending Up"
-    elif "Down" in trend or "Baisse" in trend: trend_icon = "📉 Trending Down"
-    else: trend_icon = "➡️ Stable"
-
-    st.markdown(f"""
-    <div class="top-row">
-        <div class="status-box {status_class}">
-            <h2>{icon} {status_title}</h2>
-            <div class="trend">{trend_icon}</div>
-        </div>
-        <div class="bluf-box">
-            <h3>Bottom Line Up Front (BLUF)</h3>
-            <p>{brief.get('bluf', '')}</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
     
+    col_status, col_bluf = st.columns([1, 2])
+    
+    with col_status:
+        # Affichage du Traffic Light
+        if "RED" in tl:
+            st.error("🚨 **CRITICAL RISK**", icon="🚨")
+        elif "GREEN" in tl:
+            st.success("✅ **STABLE**", icon="✅")
+        else:
+            st.warning("⚠️ **ELEVATED RISK**", icon="⚠️")
+        
+        # Affichage du Trend (KPI native)
+        if "Up" in trend or "Hausse" in trend: 
+            st.metric(label="Threat Trajectory", value="Trending Up", delta="Escalating", delta_color="inverse")
+        elif "Down" in trend or "Baisse" in trend: 
+            st.metric(label="Threat Trajectory", value="Trending Down", delta="De-escalating", delta_color="normal")
+        else: 
+            st.metric(label="Threat Trajectory", value="Stable", delta="No Change", delta_color="off")
+
+    with col_bluf:
+        with st.container(border=True):
+            st.subheader("Bottom Line Up Front")
+            st.info(brief.get('bluf', ''))
+    
+    st.write("") # Espace
+    
+    # --- LES PILIERS (Containers natifs) ---
+    st.subheader("📊 Strategic Assessment")
     col1, col2, col3 = st.columns(3)
+    
     with col1:
-        st.markdown(f'<div class="pillar-card"><h4>🌍 Threat Landscape</h4><div class="pillar-body">{format_bullets(brief.get("threat_landscape", "—"))}</div></div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("#### 🌍 Threat Landscape")
+            st.markdown(format_bullets(brief.get("threat_landscape", "—")))
     with col2:
-        st.markdown(f'<div class="pillar-card"><h4>📉 Business Exposure</h4><div class="pillar-body">{format_bullets(brief.get("business_impact", "—"))}</div></div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("#### 📉 Business Exposure")
+            st.markdown(format_bullets(brief.get("business_impact", "—")))
     with col3:
-        st.markdown(f'<div class="pillar-card"><h4>🛡️ Strategic Imperatives</h4><div class="pillar-body">{format_bullets(brief.get("recommendations", "—"))}</div></div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("#### 🛡️ Strategic Imperatives")
+            st.markdown(format_bullets(brief.get("recommendations", "—")))
 
 else:
-    st.error("🚨 The AI pipeline failed for this specific date. See autopsy reports below.")
+    st.error("🚨 The AI pipeline failed for this specific date.")
     if st.button("🔄 Retry Generation"):
         generate_executive_brief.clear()
         st.rerun()
@@ -341,17 +289,16 @@ else:
                 st.code(log['raw_response'], language="json")
 
 # --- TECHNICAL APPENDIX ---
-st.markdown('<div class="section-title">Restricted Access: Incident Deep Dive</div>', unsafe_allow_html=True)
+st.write("")
+st.subheader("📋 Restricted Access: Incident Deep Dive")
 
 if not incidents:
     st.info("No actionable intelligence detected for this date.")
 else:
     for sub in incidents:
         with st.expander(f"🔎 {sub['preview']}"):
-            tags_html = ""
-            if sub['country']: tags_html += f'<span class="meta-tag">📍 {sub["country"]}</span>'
-            if sub['companies']: tags_html += f'<span class="meta-tag">🏢 {sub["companies"]}</span>'
-            if tags_html: st.markdown(f"<div style='margin-bottom:15px;'>{tags_html}</div>", unsafe_allow_html=True)
+            st.markdown(f"**📍 Target Country:** {sub['country'] or 'N/A'} | **🏢 Target Sector:** {sub['companies'] or 'N/A'}")
+            st.divider()
             
             if sub['overview']: st.markdown(f"**Operational Overview:**\n{sub['overview']}")
             if sub['breach']: st.markdown(f"**Technical Vector:**\n{sub['breach']}")
