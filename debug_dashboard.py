@@ -182,11 +182,30 @@ def parse_incidents(content):
 
 
 # =====================================================================
-# 🧠 3. AI ENGINE (MODE SUPER-DEBUG)
+# 🧠 3. AI ENGINE (MODE INDESTRUCTIBLE - EXTRACTION RÉCURSIVE)
 # =====================================================================
 @st.cache_resource
 def init_llm_auth():
     return get_auth_context()
+
+def extract_key_recursive(data, target_key):
+    """ Cherche une clé n'importe où dans le JSON, peu importe la profondeur (Même dans les listes) """
+    target = str(target_key).lower()
+    if isinstance(data, dict):
+        # 1. Cherche dans le niveau actuel
+        for k, v in data.items():
+            if str(k).lower() == target:
+                return v
+        # 2. Si pas trouvé, creuse dans les sous-dossiers
+        for v in data.values():
+            res = extract_key_recursive(v, target)
+            if res is not None: return res
+    elif isinstance(data, list):
+        # 3. Si c'est une liste (comme 'executiveBrief:[...]'), on fouille chaque élément
+        for item in data:
+            res = extract_key_recursive(item, target)
+            if res is not None: return res
+    return None
 
 @st.cache_data(ttl=86400)
 def generate_executive_brief(condensed_text, _auth_context):
@@ -210,22 +229,20 @@ def generate_executive_brief(condensed_text, _auth_context):
     }
     """
     
-    debug_logs = [] # On va stocker le journal de bord de tout ce qui se passe
+    debug_logs = []
     
     for model_id in models_to_try:
         log_entry = {"model": model_id, "raw_response": "Aucune réponse", "error": None, "stage": "Initialisation"}
         
         try:
-            # ETAPE 1 : APPEL API
-            log_entry["stage"] = "1. Appel API (Connexion au LLM)"
+            log_entry["stage"] = "1. Appel API"
             chat = LLMChat(model_id=model_id, auth_context=_auth_context, high_reasoning_effort=True, web_search=False)
             chat.messages.append({"type": "plain", "role": "system", "content": system_prompt})
             
             raw = chat.say(f"Produce the executive brief JSON for these incidents:\n\n{condensed_text}")
             log_entry["raw_response"] = raw
             
-            # ETAPE 2 : EXTRACTION REGEX
-            log_entry["stage"] = "2. Nettoyage Markdown (Regex)"
+            log_entry["stage"] = "2. Nettoyage Markdown"
             clean_json_str = ""
             block_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw, re.DOTALL | re.IGNORECASE)
             
@@ -235,24 +252,29 @@ def generate_executive_brief(condensed_text, _auth_context):
                 fallback_match = re.search(r'\{.*\}', raw, re.DOTALL)
                 clean_json_str = fallback_match.group(0) if fallback_match else raw
 
-            # ETAPE 3 : DECODAGE JSON
-            log_entry["stage"] = f"3. Décodage JSON (json.loads)"
+            log_entry["stage"] = "3. Décodage JSON"
             parsed = json.loads(clean_json_str)
             
-            # ETAPE 4 : VALIDATION DES CLES
-            log_entry["stage"] = "4. Validation de la structure"
-            parsed_lower = {k.lower(): v for k, v in parsed.items()}
+            log_entry["stage"] = "4. Validation et Extraction Intelligente"
+            # On lance notre chien renifleur pour trouver le 'bluf' n'importe où
+            bluf_val = extract_key_recursive(parsed, "bluf")
             
-            if "bluf" in parsed_lower:
-                return parsed_lower, debug_logs # SUCCÈS !
+            if bluf_val:
+                # On reconstruit manuellement le dictionnaire parfait pour le reste du script !
+                final_brief = {
+                    "traffic_light": extract_key_recursive(parsed, "traffic_light") or "AMBER",
+                    "bluf": bluf_val,
+                    "threat_landscape": extract_key_recursive(parsed, "threat_landscape") or [],
+                    "business_impact": extract_key_recursive(parsed, "business_impact") or [],
+                    "recommendations": extract_key_recursive(parsed, "recommendations") or []
+                }
+                return final_brief, debug_logs
             else:
-                log_entry["error"] = "La clé 'bluf' est absente du dictionnaire JSON final."
+                log_entry["error"] = "La clé 'bluf' est introuvable, même en cherchant dans les sous-dossiers."
                 
         except Exception as e:
-            # Si ça plante, on enregistre exactement où et pourquoi !
             log_entry["error"] = f"CRASH à l'étape [{log_entry['stage']}] : {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
             
-        # On sauvegarde le rapport d'autopsie de ce modèle avant de passer au suivant
         debug_logs.append(log_entry)
             
     return None, debug_logs
@@ -262,7 +284,6 @@ def format_bullets(data_item):
     if isinstance(data_item, list):
         return "<br>".join([f"• {item}" for item in data_item])
     return str(data_item).replace("\n", "<br>")
-
 # =====================================================================
 # 🖥️ 4. USER INTERFACE (AVEC CONSOLE DE DEBUG AVANCÉE)
 # =====================================================================
