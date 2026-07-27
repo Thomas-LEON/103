@@ -29,15 +29,9 @@ st.markdown("""
     h1, h2, h3, h4, p, span, div { font-family: 'Inter', sans-serif; }
 
     /* Header */
-    .dashboard-header {
-        padding: 30px 0 10px 0;
-    }
-    .dashboard-header h1 {
-        font-size: 2.2rem; font-weight: 800; color: #1a1a1a; margin-bottom: 2px;
-    }
-    .dashboard-header p {
-        color: #6c757d; font-size: 1rem; margin-top: 0;
-    }
+    .dashboard-header { padding: 30px 0 10px 0; }
+    .dashboard-header h1 { font-size: 2.2rem; font-weight: 800; color: #1a1a1a; margin-bottom: 2px; }
+    .dashboard-header p { color: #6c757d; font-size: 1rem; margin-top: 0; }
 
     /* Traffic Light Banner */
     .traffic-banner {
@@ -49,12 +43,8 @@ st.markdown("""
         width: 16px; height: 16px; border-radius: 50%; display: inline-block;
         box-shadow: 0 0 8px currentColor;
     }
-    .traffic-banner .label {
-        font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
-    }
-    .traffic-banner .bluf-text {
-        font-size: 1.05rem; line-height: 1.6; margin-top: 8px;
-    }
+    .traffic-banner .label { font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+    .traffic-banner .bluf-text { font-size: 1.05rem; line-height: 1.6; margin-top: 8px; }
     .banner-red    { background-color: #fff5f5; border-left: 5px solid #dc3545; }
     .banner-red .dot { background-color: #dc3545; color: #dc3545; }
     .banner-red .label { color: #dc3545; }
@@ -75,9 +65,7 @@ st.markdown("""
         font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px;
         color: #6c757d; margin-bottom: 12px; font-weight: 600;
     }
-    .pillar-card .pillar-body {
-        font-size: 0.95rem; line-height: 1.7; color: #2D2D2D;
-    }
+    .pillar-card .pillar-body { font-size: 0.95rem; line-height: 1.7; color: #2D2D2D; }
 
     /* Section Titles */
     .section-title {
@@ -104,7 +92,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =====================================================================
-# 📡 1. DATA FETCHING (Chrome Headless)
+# 📡 1. DATA FETCHING
 # =====================================================================
 @st.cache_data(ttl=1800)
 def fetch_latest_report():
@@ -139,7 +127,7 @@ def fetch_latest_report():
             driver.quit()
 
 # =====================================================================
-# ⚙️ 2. NATIVE MARKDOWN PARSER (Python)
+# ⚙️ 2. NATIVE MARKDOWN PARSER
 # =====================================================================
 def parse_incidents(content):
     subjects = []
@@ -179,31 +167,29 @@ def parse_incidents(content):
         })
     return subjects
 
-
-
 # =====================================================================
-# 🧠 3. AI ENGINE (MODE INDESTRUCTIBLE - EXTRACTION RÉCURSIVE)
+# 🧠 3. AI ENGINE (MODE UNIFIÉ & INDESTRUCTIBLE)
 # =====================================================================
 @st.cache_resource
 def init_llm_auth():
     return get_auth_context()
 
-def extract_key_recursive(data, target_key):
-    """ Cherche une clé n'importe où dans le JSON, peu importe la profondeur (Même dans les listes) """
-    target = str(target_key).lower()
+def extract_key_recursive(data, target_keys):
+    """ Cherche une liste de synonymes n'importe où dans le JSON """
+    if isinstance(target_keys, str):
+        target_keys = [target_keys]
+    targets = [str(k).lower() for k in target_keys]
+    
     if isinstance(data, dict):
-        # 1. Cherche dans le niveau actuel
         for k, v in data.items():
-            if str(k).lower() == target:
+            if str(k).lower() in targets:
                 return v
-        # 2. Si pas trouvé, creuse dans les sous-dossiers
         for v in data.values():
-            res = extract_key_recursive(v, target)
+            res = extract_key_recursive(v, target_keys)
             if res is not None: return res
     elif isinstance(data, list):
-        # 3. Si c'est une liste (comme 'executiveBrief:[...]'), on fouille chaque élément
         for item in data:
-            res = extract_key_recursive(item, target)
+            res = extract_key_recursive(item, target_keys)
             if res is not None: return res
     return None
 
@@ -211,45 +197,39 @@ def extract_key_recursive(data, target_key):
 def generate_executive_brief(condensed_text, _auth_context):
     models_to_try = ["gpt-oss-120b", "mistral-medium-3.5-ITG", "gemma-4-26b"]
     
-        system_prompt = """You are a senior Cyber Threat Intelligence analyst writing a daily brief for the Board of Directors.
-    Analyze the provided summary of today's incidents and produce ONLY a valid JSON object. No greetings, no markdown, just the JSON braces.
-
-    ABSOLUTE RULES:
-    - Write everything in ENGLISH.
-    - Use BUSINESS language. NEVER use technical jargon (no CVE numbers, no hashes).
-    - Be concise and impactful. Executives have 30 seconds.
-    - YOU MUST USE THE EXACT SAME KEYS AS THE EXAMPLE BELOW. DO NOT RENAME THE KEYS.
-
-    EXAMPLE OF EXACT EXPECTED OUTPUT:
-    {
-      "traffic_light": "RED",
-      "bluf": "A critical zero-day vulnerability is actively exploited in the sector, requiring immediate patching.",
-      "threat_landscape": [
-        "State-sponsored actors are targeting financial institutions.",
-        "The velocity of attacks has increased by 40%."
-      ],
-      "business_impact": [
-        "Potential loss of sensitive PII leading to regulatory fines.",
-        "Disruption of critical trading operations."
-      ],
-      "recommendations": [
-        "Authorize emergency patching protocol.",
-        "Isolate impacted network segments immediately."
-      ]
-    }
-    """
-    
     debug_logs = []
     
     for model_id in models_to_try:
         log_entry = {"model": model_id, "raw_response": "Aucune réponse", "error": None, "stage": "Initialisation"}
         
         try:
-            log_entry["stage"] = "1. Appel API"
+            log_entry["stage"] = "1. Appel API (Mega Prompt)"
             chat = LLMChat(model_id=model_id, auth_context=_auth_context, high_reasoning_effort=True, web_search=False)
-            chat.messages.append({"type": "plain", "role": "system", "content": system_prompt})
             
-            raw = chat.say(f"Produce the executive brief JSON for these incidents:\n\n{condensed_text}")
+            # MEGA PROMPT pour forcer l'IA à écrire l'Executive Brief et ne pas juste copier les datas
+            mega_prompt = f"""You are a senior Cyber Threat Intelligence analyst writing a daily brief for the Board of Directors.
+READ the incidents provided at the end of this message and WRITE a high-level strategic summary. 
+DO NOT just convert the input text to JSON. You must actually summarize the strategic threat!
+
+ABSOLUTE RULES:
+- Write everything in ENGLISH.
+- Use BUSINESS language. NEVER use technical jargon.
+- YOU MUST USE THE EXACT SAME KEYS AS THE EXAMPLE BELOW. 
+- DO NOT RENAME THE KEYS. DO NOT CREATE ARRAYS OF INCIDENTS. ONLY RETURN ONE DICTIONARY.
+
+EXAMPLE OF EXACT EXPECTED OUTPUT:
+{{
+  "traffic_light": "RED",
+  "bluf": "A critical zero-day vulnerability is actively exploited, requiring immediate patching.",
+  "threat_landscape": ["State-sponsored actors are targeting financial institutions."],
+  "business_impact": ["Potential loss of sensitive PII leading to regulatory fines."],
+  "recommendations": ["Authorize emergency patching protocol."]
+}}
+
+--- INCIDENTS TO ANALYZE TODAY ---
+{condensed_text}
+"""
+            raw = chat.say(mega_prompt)
             log_entry["raw_response"] = raw
             
             log_entry["stage"] = "2. Nettoyage Markdown"
@@ -265,25 +245,23 @@ def generate_executive_brief(condensed_text, _auth_context):
             log_entry["stage"] = "3. Décodage JSON"
             parsed = json.loads(clean_json_str)
             
-            log_entry["stage"] = "4. Validation et Extraction Intelligente"
-            # On lance notre chien renifleur pour trouver le 'bluf' n'importe où
-            bluf_val = extract_key_recursive(parsed, "bluf")
+            log_entry["stage"] = "4. Extraction Récursive (Recherche des clés)"
+            bluf_val = extract_key_recursive(parsed, ["bluf", "bottom_line_up_front", "bottom_line", "summary", "executive_summary"])
             
             if bluf_val:
-                # On reconstruit manuellement le dictionnaire parfait pour le reste du script !
                 final_brief = {
-                    "traffic_light": extract_key_recursive(parsed, "traffic_light") or "AMBER",
+                    "traffic_light": extract_key_recursive(parsed, ["traffic_light", "status", "level"]) or "AMBER",
                     "bluf": bluf_val,
-                    "threat_landscape": extract_key_recursive(parsed, "threat_landscape") or [],
-                    "business_impact": extract_key_recursive(parsed, "business_impact") or [],
-                    "recommendations": extract_key_recursive(parsed, "recommendations") or []
+                    "threat_landscape": extract_key_recursive(parsed, ["threat_landscape", "landscape"]) or [],
+                    "business_impact": extract_key_recursive(parsed, ["business_impact", "impact"]) or [],
+                    "recommendations": extract_key_recursive(parsed, ["recommendations", "actions"]) or []
                 }
                 return final_brief, debug_logs
             else:
-                log_entry["error"] = "La clé 'bluf' est introuvable, même en cherchant dans les sous-dossiers."
+                log_entry["error"] = f"L'IA a encore ignoré la structure. Clés trouvées par Python : {list(parsed.keys()) if isinstance(parsed, dict) else type(parsed)}"
                 
         except Exception as e:
-            log_entry["error"] = f"CRASH à l'étape [{log_entry['stage']}] : {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            log_entry["error"] = f"CRASH à l'étape [{log_entry['stage']}] : {str(e)}"
             
         debug_logs.append(log_entry)
             
@@ -294,8 +272,9 @@ def format_bullets(data_item):
     if isinstance(data_item, list):
         return "<br>".join([f"• {item}" for item in data_item])
     return str(data_item).replace("\n", "<br>")
+
 # =====================================================================
-# 🖥️ 4. USER INTERFACE (AVEC CONSOLE DE DEBUG AVANCÉE)
+# 🖥️ 4. USER INTERFACE
 # =====================================================================
 
 st.markdown("""
@@ -368,7 +347,6 @@ else:
         st.rerun()
         
     st.markdown("### 🔍 AI Autopsy Reports")
-    # Affichage de tous les rapports de plantage modèle par modèle
     if debug_logs:
         for log in debug_logs:
             with st.expander(f"❌ Echec sur {log['model']} - A planté à : {log['stage']}"):
