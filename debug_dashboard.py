@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import re
+import traceback
 
 from llm import get_auth_context, LLMChat, ConfigLoader
 from selenium import webdriver
@@ -178,8 +179,10 @@ def parse_incidents(content):
         })
     return subjects
 
+
+
 # =====================================================================
-# 🧠 3. AI ENGINE (Executive Brief Generation)
+# 🧠 3. AI ENGINE (MODE SUPER-DEBUG)
 # =====================================================================
 @st.cache_resource
 def init_llm_auth():
@@ -207,15 +210,22 @@ def generate_executive_brief(condensed_text, _auth_context):
     }
     """
     
-    last_raw = ""
+    debug_logs = [] # On va stocker le journal de bord de tout ce qui se passe
+    
     for model_id in models_to_try:
+        log_entry = {"model": model_id, "raw_response": "Aucune réponse", "error": None, "stage": "Initialisation"}
+        
         try:
+            # ETAPE 1 : APPEL API
+            log_entry["stage"] = "1. Appel API (Connexion au LLM)"
             chat = LLMChat(model_id=model_id, auth_context=_auth_context, high_reasoning_effort=True, web_search=False)
             chat.messages.append({"type": "plain", "role": "system", "content": system_prompt})
             
             raw = chat.say(f"Produce the executive brief JSON for these incidents:\n\n{condensed_text}")
+            log_entry["raw_response"] = raw
             
-            # Extracteur robuste (Ignore les balises Markdown ```json )
+            # ETAPE 2 : EXTRACTION REGEX
+            log_entry["stage"] = "2. Nettoyage Markdown (Regex)"
             clean_json_str = ""
             block_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw, re.DOTALL | re.IGNORECASE)
             
@@ -225,28 +235,36 @@ def generate_executive_brief(condensed_text, _auth_context):
                 fallback_match = re.search(r'\{.*\}', raw, re.DOTALL)
                 clean_json_str = fallback_match.group(0) if fallback_match else raw
 
+            # ETAPE 3 : DECODAGE JSON
+            log_entry["stage"] = f"3. Décodage JSON (json.loads)"
             parsed = json.loads(clean_json_str)
+            
+            # ETAPE 4 : VALIDATION DES CLES
+            log_entry["stage"] = "4. Validation de la structure"
             parsed_lower = {k.lower(): v for k, v in parsed.items()}
             
             if "bluf" in parsed_lower:
-                return parsed_lower, raw
-            
-            last_raw = f"{raw}\n\n[PYTHON ERROR] : JSON loaded successfully but 'bluf' key is missing."
-            
+                return parsed_lower, debug_logs # SUCCÈS !
+            else:
+                log_entry["error"] = "La clé 'bluf' est absente du dictionnaire JSON final."
+                
         except Exception as e:
-            last_raw = f"{raw}\n\n[PYTHON PARSING ERROR] : {str(e)}"
-            continue
+            # Si ça plante, on enregistre exactement où et pourquoi !
+            log_entry["error"] = f"CRASH à l'étape [{log_entry['stage']}] : {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
             
-    return None, last_raw
+        # On sauvegarde le rapport d'autopsie de ce modèle avant de passer au suivant
+        debug_logs.append(log_entry)
+            
+    return None, debug_logs
 
-# Helper function for rendering arrays as HTML bullets
+# Helper function
 def format_bullets(data_item):
     if isinstance(data_item, list):
         return "<br>".join([f"• {item}" for item in data_item])
     return str(data_item).replace("\n", "<br>")
 
 # =====================================================================
-# 🖥️ 4. USER INTERFACE
+# 🖥️ 4. USER INTERFACE (AVEC CONSOLE DE DEBUG AVANCÉE)
 # =====================================================================
 
 st.markdown("""
@@ -267,17 +285,17 @@ incidents = parse_incidents(content)
 report_date = filename.replace(".md", "").replace("_", " ")
 st.caption(f"📅 Source: `{filename}` — {len(incidents)} incident(s) identified")
 
-# --- CONTEXT REDUCTION (To save API Tokens & Time) ---
+# Context reduction
 condensed_report = ""
 for inc in incidents:
     condensed_report += f"- TITLE: {inc['preview']}\n"
     if inc['country']: condensed_report += f"  TARGETS: {inc['country']} / {inc['companies']}\n"
     condensed_report += f"  SUMMARY: {inc['overview']}\n\n"
 
-# --- AI GENERATION ---
+# AI Generation
 with st.spinner("🧠 AI is drafting the Executive Summary (Context Reduced)..."):
     auth_ctx = init_llm_auth()
-    brief, raw_ai = generate_executive_brief(condensed_report, auth_ctx)
+    brief, debug_logs = generate_executive_brief(condensed_report, auth_ctx)
 
 # =====================================================================
 # SECTION A & B — THE BLUF + PILLARS
@@ -303,41 +321,29 @@ if brief and isinstance(brief, dict) and "bluf" in brief:
     """, unsafe_allow_html=True)
     
     st.markdown('<div class="section-title">📊 Strategic Assessment</div>', unsafe_allow_html=True)
-    
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown(f"""
-        <div class="pillar-card">
-            <h4>🌍 Threat Landscape</h4>
-            <div class="pillar-body">{format_bullets(brief.get('threat_landscape', '—'))}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.markdown(f'<div class="pillar-card"><h4>🌍 Threat Landscape</h4><div class="pillar-body">{format_bullets(brief.get("threat_landscape", "—"))}</div></div>', unsafe_allow_html=True)
     with col2:
-        st.markdown(f"""
-        <div class="pillar-card">
-            <h4>📉 Business & Operational Impact</h4>
-            <div class="pillar-body">{format_bullets(brief.get('business_impact', '—'))}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.markdown(f'<div class="pillar-card"><h4>📉 Business & Operational Impact</h4><div class="pillar-body">{format_bullets(brief.get("business_impact", "—"))}</div></div>', unsafe_allow_html=True)
     with col3:
-        st.markdown(f"""
-        <div class="pillar-card">
-            <h4>🛡️ Actionable Intelligence</h4>
-            <div class="pillar-body">{format_bullets(brief.get('recommendations', '—'))}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="pillar-card"><h4>🛡️ Actionable Intelligence</h4><div class="pillar-body">{format_bullets(brief.get("recommendations", "—"))}</div></div>', unsafe_allow_html=True)
 
 else:
-    st.warning("⚠️ The AI could not generate a valid brief.")
-    if st.button("🔄 Retry AI Generation"):
+    st.error("🚨 The AI pipeline completely failed. See autopsy reports below.")
+    if st.button("🔄 Clear Cache & Retry"):
         generate_executive_brief.clear()
         st.rerun()
-    if raw_ai:
-        with st.expander("🛠️ Debug: Raw AI Response (Click to view)"):
-            st.code(raw_ai, language="json")
+        
+    st.markdown("### 🔍 AI Autopsy Reports")
+    # Affichage de tous les rapports de plantage modèle par modèle
+    if debug_logs:
+        for log in debug_logs:
+            with st.expander(f"❌ Echec sur {log['model']} - A planté à : {log['stage']}"):
+                st.error(f"**Error Details:**\n\n{log['error']}")
+                st.markdown("**Raw Output from AI:**")
+                st.code(log['raw_response'], language="json")
 
 # =====================================================================
 # SECTION C — TECHNICAL APPENDIX (Expanders)
