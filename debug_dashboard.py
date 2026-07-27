@@ -211,21 +211,31 @@ def extract_key_recursive(data, target_key):
 def generate_executive_brief(condensed_text, _auth_context):
     models_to_try = ["gpt-oss-120b", "mistral-medium-3.5-ITG", "gemma-4-26b"]
     
-    system_prompt = """You are a senior Cyber Threat Intelligence analyst writing a daily brief for the Board of Directors.
+        system_prompt = """You are a senior Cyber Threat Intelligence analyst writing a daily brief for the Board of Directors.
     Analyze the provided summary of today's incidents and produce ONLY a valid JSON object. No greetings, no markdown, just the JSON braces.
 
     ABSOLUTE RULES:
     - Write everything in ENGLISH.
     - Use BUSINESS language. NEVER use technical jargon (no CVE numbers, no hashes).
     - Be concise and impactful. Executives have 30 seconds.
+    - YOU MUST USE THE EXACT SAME KEYS AS THE EXAMPLE BELOW. DO NOT RENAME THE KEYS.
 
-    STRICT JSON STRUCTURE:
+    EXAMPLE OF EXACT EXPECTED OUTPUT:
     {
-      "traffic_light": "RED or AMBER or GREEN",
-      "bluf": "One or two sentences. The single most important takeaway for the board.",
-      "threat_landscape": ["Bullet point 1", "Bullet point 2"],
-      "business_impact": ["Bullet point 1", "Bullet point 2"],
-      "recommendations": ["Bullet point 1", "Bullet point 2"]
+      "traffic_light": "RED",
+      "bluf": "A critical zero-day vulnerability is actively exploited in the sector, requiring immediate patching.",
+      "threat_landscape": [
+        "State-sponsored actors are targeting financial institutions.",
+        "The velocity of attacks has increased by 40%."
+      ],
+      "business_impact": [
+        "Potential loss of sensitive PII leading to regulatory fines.",
+        "Disruption of critical trading operations."
+      ],
+      "recommendations": [
+        "Authorize emergency patching protocol.",
+        "Isolate impacted network segments immediately."
+      ]
     }
     """
     
