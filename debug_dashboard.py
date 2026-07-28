@@ -213,7 +213,7 @@ if error or not reports_data:
 timeline_data = []
 for name, content in reports_data:
     # On sécurise l'extraction de la date via Regex pour ignorer le texte parasite
-    match = re.search(r'(\d{4}_\d{2}_\d{2})', name)
+    match = re.search(r'(\d{4}[-_]\d{2}[-_]\d{2})', name)
     if match:
         date_str = match.group(1).replace("_", "-")
     else:
@@ -224,7 +224,7 @@ for name, content in reports_data:
     timeline_data.append({"Date": date_str, "Filename": name, "Score": score, "Incidents": len(day_incidents)})
 
 df_timeline = pd.DataFrame(timeline_data)
-# L'ajout de errors='coerce' transforme les dates invalides (ex: README) en NaT sans faire planter l'application
+# L'ajout de errors='coerce' transforme les dates invalides en NaT sans faire planter l'application
 df_timeline['Date'] = pd.to_datetime(df_timeline['Date'], format='mixed', errors='coerce')
 # On supprime les lignes où la date n'a pas pu être parsée
 df_timeline = df_timeline.dropna(subset=['Date'])
