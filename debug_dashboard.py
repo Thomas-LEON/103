@@ -2,6 +2,8 @@ import streamlit as st
 import json
 import re
 import traceback
+import plotly.graph_objects as go
+import pandas as pd
 
 from llm import get_auth_context, LLMChat, ConfigLoader
 from selenium import webdriver
@@ -18,7 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Petit nettoyage Streamlit de base (cacher le menu hamburger)
+# Petit nettoyage Streamlit de base
 st.markdown("""
 <style>
     #MainMenu {visibility: hidden;} 
@@ -67,7 +69,7 @@ def fetch_recent_reports(limit=7):
             driver.quit()
 
 # =====================================================================
-# ⚙️ 2. NATIVE MARKDOWN PARSER
+# ⚙️ 2. NATIVE MARKDOWN PARSER & MATHEMATICAL SCORING
 # =====================================================================
 def parse_incidents(content):
     subjects = []
@@ -98,8 +100,22 @@ def parse_incidents(content):
         })
     return subjects
 
+def calculate_daily_score(incidents):
+    """
+    CRQ Methodology: Calculates a 0-100 score based on threat volume and severity indicators.
+    """
+    score = 0
+    for inc in incidents:
+        score += 10 # Base volume weight
+        text = f"{inc['overview']} {inc['breach']} {inc['impact']}".lower()
+        if any(k in text for k in ["zero-day", "0-day", "zero day"]): score += 15
+        if "ransomware" in text: score += 10
+        if any(k in text for k in ["apt", "state-sponsored", "nation-state"]): score += 10
+        if "critical" in text: score += 5
+    return min(score, 100) # Cap at 100
+
 # =====================================================================
-# 🧠 3. AI ENGINE
+# 🧠 3. AI ENGINE (Qualitative BLUF Only)
 # =====================================================================
 @st.cache_resource
 def init_llm_auth():
@@ -108,7 +124,6 @@ def init_llm_auth():
 def extract_key_recursive(data, target_keys):
     if isinstance(target_keys, str): target_keys = [target_keys]
     targets = [str(k).lower() for k in target_keys]
-    
     if isinstance(data, dict):
         for k, v in data.items():
             if str(k).lower() in targets: return v
@@ -141,8 +156,6 @@ ABSOLUTE RULES:
 
 EXAMPLE OF EXACT EXPECTED OUTPUT:
 {{
-  "traffic_light": "RED",
-  "trend": "Trending Up",
   "bluf": "A critical zero-day vulnerability is actively exploited, requiring immediate patching.",
   "threat_landscape": ["State-sponsored actors are targeting financial institutions."],
   "business_impact": ["Potential loss of sensitive PII leading to regulatory fines."],
@@ -166,8 +179,6 @@ EXAMPLE OF EXACT EXPECTED OUTPUT:
             
             if bluf_val:
                 return {
-                    "traffic_light": extract_key_recursive(parsed, ["traffic_light", "status", "level"]) or "AMBER",
-                    "trend": extract_key_recursive(parsed, ["trend", "trending", "direction"]) or "Stable",
                     "bluf": bluf_val,
                     "threat_landscape": extract_key_recursive(parsed, ["threat_landscape", "landscape"]) or [],
                     "business_impact": extract_key_recursive(parsed, ["business_impact", "impact"]) or [],
@@ -183,14 +194,13 @@ EXAMPLE OF EXACT EXPECTED OUTPUT:
             
     return None, debug_logs
 
-# Helper pour formater les puces nativement
 def format_bullets(data_item):
     if isinstance(data_item, list): 
         return "\n".join([f"- {item}" for item in data_item])
     return str(data_item)
 
 # =====================================================================
-# 🖥️ 4. USER INTERFACE (V8 PURE STREAMLIT)
+# 🖥️ 4. USER INTERFACE (V9 MATHEMATICAL CRQ + PLOTLY)
 # =====================================================================
 with st.spinner("Synchronising historical intelligence feed..."):
     reports_data, error = fetch_recent_reports(limit=7)
@@ -199,71 +209,126 @@ if error or not reports_data:
     st.error(error or "No data available.")
     st.stop()
 
+# Build timeline data
+timeline_data = []
+for name, content in reports_data:
+    date_str = name.replace(".md", "").replace("Report_", "").replace("_", "-")
+    day_incidents = parse_incidents(content)
+    score = calculate_daily_score(day_incidents)
+    timeline_data.append({"Date": date_str, "Filename": name, "Score": score, "Incidents": len(day_incidents)})
+
+df_timeline = pd.DataFrame(timeline_data)
+df_timeline['Date'] = pd.to_datetime(df_timeline['Date'])
+df_timeline = df_timeline.sort_values(by="Date") # Sort chronologically for the chart
+avg_7d_score = df_timeline['Score'].mean()
+
 # --- SIDEBAR: HISTORY SELECTION ---
 with st.sidebar:
-    st.title("📅 Archive")
+    st.title("📅 Intelligence Archive")
     st.caption("Select a date to view the strategic assessment.")
-    report_options = [r[0] for r in reports_data]
+    report_options = [r['Filename'] for r in timeline_data]
     selected_filename = st.radio("Past 7 Days", report_options, label_visibility="collapsed")
+    
+    st.markdown("---")
+    st.markdown("### 🧮 CRQ Methodology")
+    st.info("The **Composite Threat Score (0-100)** is calculated deterministically via Python, independent of AI.\n\n"
+            "- **Base Score:** 10 pts per incident.\n"
+            "- **Zero-Day Modifier:** +15 pts.\n"
+            "- **Ransomware/APT Modifier:** +10 pts.\n"
+            "The **Trend** compares today's score against the 7-day moving average.")
 
 # Get the content for the selected date
+selected_row = next(r for r in timeline_data if r['Filename'] == selected_filename)
 selected_content = next(content for name, content in reports_data if name == selected_filename)
 report_date_clean = selected_filename.replace(".md", "").replace("_", " ")
 
 incidents = parse_incidents(selected_content)
+current_score = selected_row['Score']
 
 st.title("Strategic Cyber Threat Briefing")
 st.caption(f"Executive assessment for **{report_date_clean}** | {len(incidents)} actionable incidents analyzed")
 st.divider()
 
-# Context reduction
+# --- DATAVIZ ROW (PLOTLY) ---
+col_gauge, col_trend = st.columns([1, 2])
+
+with col_gauge:
+    fig_gauge = go.Figure(go.Indicator(
+        mode = "gauge+number+delta",
+        value = current_score,
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': "Composite Threat Score", 'font': {'size': 20}},
+        delta = {'reference': avg_7d_score, 'increasing': {'color': "red"}, 'decreasing': {'color': "green"}},
+        gauge = {
+            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
+            'bar': {'color': "rgba(0,0,0,0)"},
+            'bgcolor': "white",
+            'borderwidth': 2,
+            'bordercolor': "gray",
+            'steps': [
+                {'range': [0, 33], 'color': "#00915A"},
+                {'range': [33, 66], 'color': "#ff9800"},
+                {'range': [66, 100], 'color': "#e53935"}
+            ],
+            'threshold': {
+                'line': {'color': "black", 'width': 4},
+                'thickness': 0.75,
+                'value': current_score
+            }
+        }
+    ))
+    fig_gauge.update_layout(height=300, margin=dict(l=20, r=20, t=50, b=20))
+    st.plotly_chart(fig_gauge, use_container_width=True)
+
+with col_trend:
+    fig_line = go.Figure()
+    fig_line.add_trace(go.Scatter(
+        x=df_timeline['Date'], 
+        y=df_timeline['Score'],
+        mode='lines+markers',
+        name='Daily Score',
+        line=dict(color='#1f77b4', width=3),
+        marker=dict(size=8)
+    ))
+    fig_line.add_trace(go.Scatter(
+        x=df_timeline['Date'], 
+        y=[avg_7d_score]*len(df_timeline),
+        mode='lines',
+        name='7-Day Baseline',
+        line=dict(color='gray', width=2, dash='dash')
+    ))
+    fig_line.update_layout(
+        title="7-Day Historical Threat Baseline",
+        height=300,
+        margin=dict(l=20, r=20, t=50, b=20),
+        xaxis_title="",
+        yaxis_title="Threat Score",
+        yaxis_range=[0, 100]
+    )
+    st.plotly_chart(fig_line, use_container_width=True)
+
+
+# AI Generation
 condensed_report = ""
 for inc in incidents:
     condensed_report += f"- TITLE: {inc['preview']}\n"
     if inc['country']: condensed_report += f"  TARGETS: {inc['country']} / {inc['companies']}\n"
     condensed_report += f"  SUMMARY: {inc['overview']}\n\n"
 
-# AI Generation
 with st.spinner(f"🧠 Synthesizing executive brief for {report_date_clean}..."):
     auth_ctx = init_llm_auth()
     brief, debug_logs = generate_executive_brief(condensed_report, report_date_clean, auth_ctx)
 
-# --- THE TOP ROW (PURE NATIVE) ---
+# --- THE BLUF & PILLARS ---
 if brief and isinstance(brief, dict) and "bluf" in brief:
     
-    tl = str(brief.get("traffic_light", "AMBER")).upper()
-    trend = str(brief.get("trend", "Stable")).title()
+    with st.container(border=True):
+        st.subheader("Bottom Line Up Front")
+        st.info(brief.get('bluf', ''))
     
-    col_status, col_bluf = st.columns([1, 2])
+    st.write("")
     
-    with col_status:
-        # Affichage du Traffic Light
-        if "RED" in tl:
-            st.error("🚨 **CRITICAL RISK**", icon="🚨")
-        elif "GREEN" in tl:
-            st.success("✅ **STABLE**", icon="✅")
-        else:
-            st.warning("⚠️ **ELEVATED RISK**", icon="⚠️")
-        
-        # Affichage du Trend (KPI native)
-        if "Up" in trend or "Hausse" in trend: 
-            st.metric(label="Threat Trajectory", value="Trending Up", delta="Escalating", delta_color="inverse")
-        elif "Down" in trend or "Baisse" in trend: 
-            st.metric(label="Threat Trajectory", value="Trending Down", delta="De-escalating", delta_color="normal")
-        else: 
-            st.metric(label="Threat Trajectory", value="Stable", delta="No Change", delta_color="off")
-
-    with col_bluf:
-        with st.container(border=True):
-            st.subheader("Bottom Line Up Front")
-            st.info(brief.get('bluf', ''))
-    
-    st.write("") # Espace
-    
-    # --- LES PILIERS (Containers natifs) ---
-    st.subheader("📊 Strategic Assessment")
     col1, col2, col3 = st.columns(3)
-    
     with col1:
         with st.container(border=True):
             st.markdown("#### 🌍 Threat Landscape")
