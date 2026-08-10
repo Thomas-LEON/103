@@ -1,122 +1,140 @@
-**Crypto-News-2026-31**
+**Crypto-News-2026-32**
 
 **Regulatory Update**
 
-**Bank of Russia Publishes Crypto Draft Rules**
-*   Russia's central bank has released proposed regulations for cryptocurrency trading, custody, and settlement.
-*   The draft framework establishes clear operational guidelines for domestic digital asset service providers.
-*   Authorities aim to bring crypto transactions under formal oversight while preventing capital flight.
-*   [Read more](https://cryptobriefing.com/bank-of-russia-publishes-draft-rules-for-regulated-crypto-trading-custody-and-settlement/)
+**NY Judge Denies CFTC Stay Against Kalshi**
+*   A New York federal judge has officially denied the CFTC’s motion for an emergency stay on Kalshi's prediction markets.
+*   The decision clears the way for the platform to continue offering regulated event contracts to retail traders.
+*   Regulators argued that election-based contracts present a severe threat to public interest and election integrity.
+*   The ruling represents a landmark legal setback for the agency's efforts to curb decentralized prediction platforms.
+*   [Read more](https://cointelegraph.com/news/ny-judge-denies-cftc-motion-enforcement-kalshi)
 
-**SEC Freezes Nasdaq Bitcoin Options Approval**
-*   The SEC has stayed its approval of Nasdaq's Bitcoin index options following a legal challenge from CME Group.
-*   CME argues that the new derivative listing violates established market structure and competition standards.
-*   The regulatory freeze temporarily halts Nasdaq's expansion of institutional Bitcoin options products.
-*   [Read more](https://cryptobriefing.com/sec-freezes-nasdaq-bitcoin-options-cme-challenge/)
+**Warren Urges SEC Probe Into Trump's Crypto Project**
+*   Senator Elizabeth Warren has formally requested the SEC to investigate Donald Trump's new cryptocurrency venture, World Liberty Financial.
+*   The lawmaker cited significant conflict-of-interest risks and potential ethical violations regarding the promotion of the token.
+*   The project, backed by the Trump family, aims to launch a high-yield stablecoin and lending protocol.
+*   Warren emphasizes the need for regulatory oversight to prevent public figures from exploiting retail investors.
+*   [Read more](https://www.cryptopolitan.com/warren-press-sec-probe-trump-rug-pull)
 
-**Securitize Registers as SEC Investment Adviser**
-*   Securitize Capital has officially registered as an investment adviser with the US SEC.
-*   The registration strengthens the firm's regulatory credentials as it expands tokenized asset offerings.
-*   The move allows Securitize to manage institutional tokenized funds under federal securities oversight.
-*   [Read more](https://cointelegraph.com/news/securitize-becomes-sec-registered-investment-adviser-through-capital-unit)
+**South Africa Proposes Cross-Border Crypto Rules**
+*   South African lawmakers have proposed stringent new draft regulations targeting cross-border digital asset transactions.
+*   The framework mandates detailed reporting for virtual asset service providers facilitating international transfers.
+*   Authorities aim to mitigate capital flight and prevent the evasion of domestic exchange control limits.
+*   This policy shift aligns the nation with global anti-money laundering and tax compliance standards.
+*   [Read more](https://www.coindesk.com/policy/2026/08/04/south-african-lawmakers-propose-draft-rules-on-cross-border-crypto-transactions)
 
-**CFTC Fines George Santos Over Kalshi Manipulation**
-*   The CFTC has imposed a civil penalty on former Congressman George Santos for prediction market manipulation.
-*   Investigators found Santos attempted to influence event contract outcomes on the Kalshi trading platform.
-*   The enforcement action demonstrates the CFTC's commitment to policing integrity within event derivative markets.
-*   [Read more](https://www.cryptopolitan.com/cftc-fines-george-santos-over-kalshi-market-manipulation/)
+**Robinhood Secures UK FCA Crypto Registration**
+*   Robinhood’s UK subsidiary has successfully secured official crypto asset registration with the Financial Conduct Authority.
+*   The milestone allows the retail brokerage giant to offer fully compliant digital asset services to UK clients.
+*   The regulatory green light strengthens Robinhood's international expansion strategy amid tightening global oversight.
+*   The company must now adhere to the UK's strict Consumer Duty and marketing compliance frameworks.
+*   [Read more](https://cryptobriefing.com/robinhood-uk-crypto-fca-registration)
 
-**US Lawmakers Target Crypto Tax Loophole**
-*   US lawmakers have introduced legislation to close tax loopholes exploited by digital asset traders.
-*   The bill seeks to standardize reporting requirements across decentralized exchanges and cross-chain protocols.
-*   Proponents argue the reform will generate significant federal revenue and curb offshore tax evasion.
-*   [Read more](https://cryptobriefing.com/us-lawmakers-target-crypto-tax-loophole-amid-regulatory-scrutiny/)
+**Senators Push CFTC to Block Wildfire Markets**
+*   A coalition of US Democratic Senators has urged the CFTC to block prediction markets for wildfires.
+*   Lawmakers argue that event contracts based on environmental disasters create moral hazards and encourage arson.
+*   The appeal targets platforms seeking to self-certify derivatives linked to natural catastrophes.
+*   The push underscores ongoing political pressure on federal regulators to restrict speculative event-based betting.
+*   [Read more](https://cryptobriefing.com/senators-cftc-wildfire-prediction-markets)
 
-**Myanmar Parliament Passes Tough Anti-Scam Law**
-*   Myanmar's parliament has enacted strict legislation imposing life sentences on crypto scam operators.
-*   The law targets organized human trafficking rings operating illicit call centers and fraudulent schemes.
-*   Authorities are intensifying law enforcement actions to dismantle industrial-scale scam compounds.
-*   [Read more](https://cointelegraph.com/news/myanmar-parliament-crypto-scam-bill-life-sentences)
+**Brazil Targets Fraud With 24-Hour Crypto Holds**
+*   Brazil's central bank has proposed a new mechanism allowing banks to place 24-hour holds on transfers.
+*   The precautionary measure targets transactions destined for cryptocurrency exchanges suspected of facilitating fraud.
+*   Regulators hope the delay will give victims of social engineering scams time to report illicit activities.
+*   The rule highlights a proactive approach to shielding retail consumers from rapid on-chain asset loss.
+*   [Read more](https://cointelegraph.com/news/brazil-targets-crypto-fraud-with-up-to-24-hour-transfer-hold)
 
 **Cryptocurrency Outlook**
 
-**Bank of England Holds Rates at 3.75%**
-*   The Bank of England has decided to maintain its benchmark interest rate at 3.75%.
-*   Central bank officials cited persistent service inflation and economic growth slowdowns for the hold.
-*   The pause keeps borrowing costs elevated, maintaining liquidity constraints across alternative asset markets.
-*   [Read more](https://cryptobriefing.com/bank-of-england-holds-rate-375-percent/)
+**Wintermute Secures US Broker-Dealer License**
+*   Algorithmic trading giant Wintermute has formally obtained broker-dealer registration from US financial regulators.
+*   The approval enables the firm to expand its institutional offerings into traditional securities markets.
+*   The strategic move reflects a broader industry trend of crypto-native firms seeking legacy compliance.
+*   Wintermute aims to bridge decentralized liquidity with traditional finance infrastructure under federal oversight.
+*   [Read more](https://www.coindesk.com/business/2026/08/07/wintermute-gains-u-s-broker-dealer-status-in-wall-street-push)
 
-**Bank of Japan Signals Hawkish Stance on Rates**
-*   Bank of Japan Governor Kazuo Ueda signaled potential rate hikes as inflation risks linger.
-*   The hawkish tone has supported the yen, putting pressure on global currency carry trade strategies.
-*   Tightening Japanese monetary policy continues to create macroeconomic headwinds for risk-on assets like Bitcoin.
-*   [Read more](https://cryptobriefing.com/boj-holds-rates-hawkish-crypto-impact/)
+**Trump Hosts Bitcoin Miners at State Department**
+*   Donald Trump hosted a roundtable with leading Bitcoin mining executives at the US State Department.
+*   The meeting focused on securing domestic energy resources and strengthening America's position in global mining.
+*   Industry leaders discussed the integration of renewable energy grids to support high-performance data centers.
+*   The unprecedented collaboration signals growing political alignment with the digital asset infrastructure sector.
+*   [Read more](https://cryptobriefing.com/trump-mining-executives-roundtable-state-department)
 
-**Tether Q2 Profits Surge With US Treasury Expansion**
-*   Stablecoin issuer Tether reported record net profits in Q2, backed by expanded US Treasury holdings.
-*   The firm's reserve portfolio now places it among the world's largest sovereign debt holders.
-*   Continued growth in USDT supply reflects sustained global demand for digital dollar settlements.
-*   [Read more](https://cointelegraph.com/news/tether-q2-profit-us-treasury-holdings-usdt-supply)
+**Bessent Proposes FIMA Expansion for Yen Support**
+*   Treasury Secretary Scott Bessent has proposed expanding the Federal Reserve’s FIMA repo facility.
+*   The initiative aims to support the Japanese yen and ease global FX carry trade pressures.
+*   Financial analysts suggest this expansion will enhance liquidity, providing stability to risk-on digital assets.
+*   The proposal represents a coordinated macroeconomic response to persistent volatility in international currency markets.
+*   [Read more](https://cryptobriefing.com/bessent-fed-fima-facility-yen-support)
 
-**Fed Warsh Defends Steady Rates Amid Inflation Risks**
-*   Federal Reserve Chair Kevin Warsh defended the central bank's decision to keep interest rates steady.
-*   Warsh emphasized that controlling core inflation remains the Fed's top operational priority.
-*   The stance dispels market expectations for imminent monetary easing, weighing on crypto valuations.
-*   [Read more](https://cryptobriefing.com/fed-warsh-defends-steady-rates-inflation/)
+**Top Treasury Bitcoin Adviser Tyler Williams Exits**
+*   Tyler Williams, the leading digital asset and Bitcoin adviser at the US Treasury, has departed.
+*   Williams played a central role in drafting emerging regulatory frameworks for stablecoins and reserves.
+*   The transition comes at a critical juncture as the administration refines its long-term crypto policies.
+*   Market participants are closely watching the department for signs of subsequent policy or leadership shifts.
+*   [Read more](https://cryptobriefing.com/treasury-bitcoin-adviser-tyler-williams-exits)
 
-**Binance US Prepares CFTC Prediction Market Application**
-*   Binance.US is preparing an application to register as a Designated Contract Market with the CFTC.
-*   The strategic move aims to enable fully regulated event contract and prediction market trading in the US.
-*   If approved, the exchange would enter direct competition with established platforms like Kalshi and Polymarket.
-*   [Read more](https://cointelegraph.com/news/binance-us-prediction-markets-cftc-designated-contract-market)
+**SEC Establishes Specialized Accounting Fraud Unit**
+*   The SEC has launched a dedicated unit focused on prosecuting accounting fraud in crypto.
+*   The enforcement team will scrutinize financial reporting and reserve disclosures from digital asset issuers.
+*   The initiative reflects the agency's shifting focus toward structural transparency rather than simple asset classification.
+*   Industry experts warn that tighter auditing requirements will significantly increase compliance costs for Web3 firms.
+*   [Read more](https://www.cryptopolitan.com/sec-builds-accounting-fraud-unit-as-crypto-oversight-tilts)
 
-**US Treasury Sanctions Iranian Crypto-Insurance Scheme**
-*   The US Treasury has sanctioned an Iranian network utilizing Bitcoin to back maritime shipping insurance.
-*   Officials state the illicit scheme was designed to bypass Western oil export restrictions and sanctions.
-*   The enforcement action demonstrates federal focus on disrupting state-sponsored crypto evasion tactics.
-*   [Read more](https://cryptobriefing.com/us-treasury-sanctions-irans-bitcoin-backed-shipping-insurance-scheme/)
+**Bybit Secures Austrian Electronic Money License**
+*   Cryptocurrency exchange Bybit has obtained an official electronic money license from Austrian financial regulators.
+*   The approval permits the platform to expand its fiat-pegged settlement services across the European Union.
+*   This license ensures Bybit's long-term operational resilience ahead of final MiCA enforcement deadlines.
+*   It highlights the aggressive push among global exchanges to secure regulated footprints in Europe.
+*   [Read more](https://cointelegraph.com/news/bybit-austria-electronic-money-license-europe-payments)
 
 **Technology Risk**
 
-**Bitcoin Cold Wallet Exploit Targets 4,500 Addresses**
-*   A sophisticated cryptographic attack on Bitcoin cold wallets has compromised over 4,500 addresses.
-*   Total losses from the flaw are approaching $89 million as attackers exploit legacy key generation methods.
-*   Security firms urge users of affected hardware wallets to migrate funds to updated seed frameworks immediately.
-*   [Read more](https://www.coindesk.com/tech/2026/08/02/bitcoin-cold-wallet-attack-spreads-to-4-500-addresses-as-losses-near-usd89-million)
+**Bybit Sues North Korea and Lazarus Group Over \$1.5B Hack**
+*   Bybit has filed a historic lawsuit against North Korea and the state-sponsored Lazarus Group.
+*   The litigation targets the perpetrators of a massive \$1.5 billion exploit on the platform's infrastructure.
+*   A US court has granted a preliminary asset freeze on the hackers' identified on-chain wallets.
+*   This marks an unprecedented legal escalation by a private exchange to recoup stolen state-sponsored assets.
+*   [Read more](https://www.coindesk.com/policy/2026/08/07/bybit-sues-north-korea-and-lazarus-group-over-usd1-5-billion-hack-secures-asset-freeze)
 
-**Solana Foundation CISO Warns of AI-Powered Scams**
-*   The Solana Foundation's Chief Information Security Officer warned of a surge in AI-driven social engineering.
-*   Generative AI models are being used to create highly convincing phishing messages and deepfake campaigns.
-*   Attackers are increasingly targeting retail and institutional wallet holders with automated exploits.
-*   [Read more](https://www.coindesk.com/tech/2026/07/31/solana-foundation-s-new-ciso-warns-ai-is-making-crypto-scams-more-convincing)
+**Former FBI Supervisor Arrested for \$1M Crypto Theft**
+*   A former FBI intelligence supervisor has been arrested for allegedly stealing \$1 million in cryptocurrency.
+*   The suspect purportedly misappropriated the seized digital assets during active federal cybercrime investigations.
+*   Authorities tracked the stolen funds moving through privacy mixers before executing the arrest warrant.
+*   The incident exposes critical internal security vulnerabilities regarding the custody of confiscated digital assets.
+*   [Read more](https://www.coindesk.com/policy/2026/08/03/u-s-fbi-intelligence-agent-arrested-in-connection-with-theft-of-usd1-million-in-crypto)
 
-**Thailand SEC Accuses Bitkub of Concealing $50M Hack**
-*   Thailand's SEC has filed charges against crypto exchange Bitkub for concealing a $50 million security breach.
-*   Regulators allege platform management failed to disclose the exploit to users and regulators in a timely manner.
-*   The legal action reflects growing regulatory intolerance for opaque breach reporting in Asia.
-*   [Read more](https://www.coindesk.com/policy/2026/07/27/thailand-s-sec-alleges-bitkub-concealed-cyberattack-that-led-to-usd50-million-hack)
+**Boltz Pauses Swaps Due to AI-Assisted Hacking**
+*   Decentralized swap protocol Boltz has temporarily suspended its Bitcoin swap services.
+*   The emergency halt follows a wave of sophisticated, automated AI-assisted hacking attempts on its pools.
+*   Attackers utilized advanced machine learning models to identify and exploit minute smart contract timing windows.
+*   Developers are auditing the codebase to implement patches before safely resuming protocol operations.
+*   [Read more](https://www.cryptopolitan.com/boltz-halts-bitcoin-swaps-ai-attacks)
 
-**BitRiver Founder Detained in Russia Over $12.5M Fraud**
-*   Igor Runets, founder of Russian crypto mining giant BitRiver, has been arrested on fraud charges.
-*   Authorities accuse the executive of embezzling $12.5 million connected to industrial mining operations.
-*   The high-profile arrest signals tightening state control over Russia's cryptocurrency mining infrastructure.
-*   [Read more](https://cointelegraph.com/news/bitriver-founder-russia-charges-alleged-fraud)
+**Japan FSA Tells Exchanges to Delay Suspicious Withdrawals**
+*   Japan’s Financial Services Agency has instructed domestic crypto exchanges to delay suspicious retail withdrawals.
+*   The voluntary directive aims to prevent elderly victims from losing funds to rampant romance scams.
+*   Exchanges must flag transactions showing abnormal on-chain behavior or sudden large outbound transfers.
+*   The intervention reflects growing concern over the social engineering tactics targeting decentralized financial portals.
+*   [Read more](https://cointelegraph.com/news/japan-fsa-crypto-exchanges-withdrawal-delays-scams)
 
-**Lazarus Group Moves $7.7M Stolen Bitcoin**
-*   North Korea's state-sponsored Lazarus Group has initiated transfers of $7.7 million in stolen Bitcoin.
-*   Forensics firms tracked the funds moving through automated mixers and privacy protocols.
-*   The hackers have stolen over $577 million across various protocol exploits during 2026 alone.
-*   [Read more](https://www.cryptopolitan.com/lazarus-just-moved-7-7m-in-bitcoin-after-hackers-stole-577m-in-2026/)
+**North Korean Hackers Exploit AI Tools to Scale Attacks**
+*   Security researchers have warned that North Korean hackers are leveraging AI tools to scale operations.
+*   The Lazarus Group utilizes generative AI to draft highly convincing, localized phishing lures for targets.
+*   This integration allows attackers to bypass standard language-based defenses and automate social engineering campaigns.
+*   Experts call for advanced machine-learning defenses to counter this rapid evolution of malicious AI.
+*   [Read more](https://www.cryptopolitan.com/north-korea-hackers-ai-tools-widen-reach)
 
-**BlueNoroff Deploys Fake Video Call Malware**
-*   Cybercrime group BlueNoroff is deploying malware disguised as video conferencing applications.
-*   Attackers trick Web3 executives into downloading compromised software during fake business calls.
-*   Once installed, the Trojan extracts private keys and session tokens directly from victim devices.
-*   [Read more](https://www.cryptopolitan.com/bluenoroff-fake-zoom-calls-crypto-malware/)
+**EU Watchdogs Warn of MiCA-Themed Impersonation Scams**
+*   European regulators have issued a joint alert regarding fraudulent communications targeting regional crypto firms.
+*   Phishing syndicates are posing as MiCA compliance officers to harvest corporate credentials and API keys.
+*   The scam exploits anxiety surrounding impending authorization deadlines and strict new regulatory requirements.
+*   Watchdogs urge companies to rigorously verify all supervisory correspondence before sharing sensitive network data.
+*   [Read more](https://www.cryptopolitan.com/eu-warns-crypto-scams-mica-deadline)
 
 **MACRO TRENDS: What's changing**
 
-*   **Institutional Tokenization Solidifies:** Building on last week's legislative momentum, institutional infrastructure is formalizing. Securitize’s SEC investment adviser registration and Tether’s massive U.S. Treasury reserve expansion demonstrate that real-world asset tokenization and sovereign debt backing are evolving from speculative offerings into regulated, foundational financial infrastructure.
-*   **Regulatory Policy Enters Operational Phase:** Advancing from the Senate’s recent legislative pushes, global oversight is translating into concrete administrative execution. Russia’s draft rules for regulated trading, alongside U.S. bills targeting cross-chain tax loopholes and Treasury sanctions on illicit insurance schemes, signal a decisive shift toward enforceable compliance.
-*   **Central Banks Lock In Hawkish Stances:** Diverging from prior expectations of monetary easing, global central banks are reinforcing restrictive stances. With the Bank of England holding rates at 3.75%, the Fed prioritizing core inflation, and the Bank of Japan signaling rate hikes, persistent macroeconomic tightening continues to constrain digital asset liquidity.
-*   **AI Integration Elevates Infrastructure and Security Risks:** The intersection of artificial intelligence and Web3 is reshaping both operational capabilities and threat vectors. While traditional institutions adopt AI for fraud detection, threat actors weaponize generative models for sophisticated phishing and zero-day exploits, forcing exchanges and protocols to upgrade defensive architecture.
+*   **TradFi Integration Accelerates:** Evolving from last week’s tokenization milestones, institutional integration is securing direct transactional gateways. Wintermute obtaining a US broker-dealer license and Bybit securing an Austrian e-money registry show crypto-native liquidity providers actively embedding themselves within traditional payment and settlement frameworks, bridging the gap with legacy finance.
+*   **Policy Intervention Deepens:** Advancing from last week's compliance execution, global oversight is shifting toward active, protective market intervention. South Africa's proposed cross-border rules, Brazil's 24-hour transfer holds, and the SEC's specialized accounting fraud unit indicate that regulators are prioritizing consumer protection and structural policing over exploratory enforcement.
+*   **On-Chain Infrastructure Solidifies:** Evolving from last week's tokenization registrations, on-chain market infrastructure is securing definitive legal and operational precedents. The federal court's refusal to stay Kalshi's prediction contracts solidifies event-based derivatives and tokenized securities as permanent, highly regulated classes within mainstream financial plumbing.
+*   **AI Hacking Risks Escalating:** Compounding last week’s warning about AI-driven social engineering, autonomous threat actors are now targeting protocol infrastructure. Boltz halting Bitcoin swaps due to automated machine-learning exploits highlights that AI-powered vulnerabilities present an immediate, systemic threat to smart contracts, forcing defensive protocols to evolve.
