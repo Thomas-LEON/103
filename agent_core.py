@@ -1,8 +1,10 @@
 """
 Agent Core — Boucle agentique ReAct (Reason + Act).
+V2: Supporte 4 outils (list_dir, read_file, copy_file, write_file).
 Parse les réponses du LLM, exécute les outils, reboucle jusqu'à une réponse finale.
 """
 
+import os
 import re
 import time
 from llm import get_auth_context, LLMChat
@@ -14,7 +16,7 @@ from path_guard import PathGuard, ALLOWED_ROOT_DIR
 MODELS = ["gpt-oss-120b", "mistral-medium-3.5-ITG", "gemma-4-26b"]
 MAX_ITERATIONS = 10
 
-SYSTEM_PROMPT = f"""You are a helpful file exploration assistant. You help users navigate and read files within a secured directory.
+SYSTEM_PROMPT = f"""You are a helpful file management assistant. You help users navigate, read, copy and write files within a secured directory.
 
 WORKING DIRECTORY: {ALLOWED_ROOT_DIR}
 You can ONLY access files and folders inside this directory.
@@ -25,7 +27,11 @@ You can ONLY access files and folders inside this directory.
 
 When you need to use a tool, respond with EXACTLY this format:
 THOUGHT: <your reasoning about what to do next>
-ACTION: <tool_name> | <path_argument>
+ACTION: <tool_name> | <arguments>
+
+For tools with multiple arguments, separate them with |
+  Example: ACTION: copy_file | source.txt | destination.txt
+  Example: ACTION: write_file | notes.txt | Content to write here
 
 When you have enough information to answer the user, respond with:
 THOUGHT: <your reasoning>
@@ -38,6 +44,8 @@ ANSWER: <your complete response to the user>
 4. If a tool returns an error, explain it clearly to the user.
 5. Answer in the SAME LANGUAGE as the user (French if they write French, etc.).
 6. Be concise but informative.
+7. For write_file, include the FULL content to write after the path.
+8. You CANNOT write or copy to protected extensions (.py, .bat, .ps1, .sh, .exe, .dll).
 """
 
 
@@ -97,6 +105,9 @@ def run_agent(
 
         # ── Case B: Tool call ──
         if action:
+            # Parse tool name and arguments
+            # For single-arg tools: "tool_name | arg"
+            # For multi-arg tools:  "tool_name | arg1 | arg2"
             parts = action.split("|", 1)
             tool_name = parts[0].strip().lower()
             tool_arg = parts[1].strip() if len(parts) > 1 else "."
@@ -116,25 +127,17 @@ def run_agent(
 
                 # Format observation for LLM
                 if result["success"]:
-                    if tool_name == "list_dir":
-                        obs = (
-                            f"Directory: {result['path']}\n"
-                            f"{result['count']} items found:\n"
-                            + "\n".join(result["entries"])
-                        )
-                    else:  # read_file
-                        trunc_tag = " [TRUNCATED]" if result.get("truncated") else ""
-                        obs = (
-                            f"File: {result['path']}{trunc_tag}\n"
-                            f"---\n{result['content']}"
-                        )
+                    obs = _format_observation(tool_name, result)
                     preview = obs[:250] + ("..." if len(obs) > 250 else "")
                     step["events"].append(("📄 RESULT", preview))
                 else:
                     obs = f"ERROR: {result['error']}"
                     step["events"].append(("❌ ERROR", obs))
             else:
-                obs = f"ERROR: Unknown tool '{tool_name}'. Available tools: list_dir, read_file."
+                obs = (
+                    f"ERROR: Unknown tool '{tool_name}'. "
+                    f"Available tools: list_dir, read_file, copy_file, write_file."
+                )
                 step["events"].append(("❌ ERROR", obs))
 
             # Feed observation back to LLM
@@ -155,6 +158,50 @@ def run_agent(
         "⚠️ Nombre maximum d'itérations atteint. Essayez une question plus simple.",
         debug_logs,
     )
+
+
+# ─── Observation formatter ───────────────────────────────────
+
+def _sanitize_path(full_path: str) -> str:
+    """Strip root directory from path to avoid leaking internal structure to LLM."""
+    root = PathGuard().root_dir
+    if full_path.startswith(root):
+        relative = full_path[len(root):]
+        return relative.lstrip(os.sep) or "."
+    return full_path
+
+def _format_observation(tool_name: str, result: dict) -> str:
+    """Format a successful tool result into a text observation for the LLM."""
+    if tool_name == "list_dir":
+        return (
+            f"Directory: {_sanitize_path(result['path'])}\n"
+            f"{result['count']} items found:\n"
+            + "\n".join(result["entries"])
+        )
+
+    elif tool_name == "read_file":
+        trunc_tag = " [TRUNCATED]" if result.get("truncated") else ""
+        # Wrap content in unique delimiters to prevent prompt injection
+        # (file content could contain "ANSWER:" or "ACTION:" strings)
+        return (
+            f"File: {_sanitize_path(result['path'])}{trunc_tag}\n"
+            f"<<<FILE_CONTENT_START>>>\n{result['content']}\n<<<FILE_CONTENT_END>>>"
+        )
+
+    elif tool_name == "copy_file":
+        msg = f"SUCCESS: {result['message']}\nSource: {_sanitize_path(result['source'])}\nDestination: {_sanitize_path(result['destination'])}"
+        if result.get("backup"):
+            msg += f"\nBackup created."
+        return msg
+
+    elif tool_name == "write_file":
+        msg = f"SUCCESS: {result['message']}\nPath: {_sanitize_path(result['path'])}\nChars written: {result['chars_written']}"
+        if result.get("backup"):
+            msg += f"\nBackup created."
+        return msg
+
+    else:
+        return f"SUCCESS: {result.get('message', str(result))}"
 
 
 # ─── LLM caller with model fallback ─────────────────────────

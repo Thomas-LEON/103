@@ -1,14 +1,19 @@
 """
-Agent Tools — Les 2 outils lecture seule de l'agent.
+Agent Tools — Les 4 outils de l'agent (V2).
+V1: list_dir, read_file (lecture seule)
+V2: + copy_file, write_file (écriture contrôlée)
 Chaque outil passe par PathGuard avant toute opération I/O.
 """
 
 import os
+import shutil
 from path_guard import PathGuard
 
 # Max characters to return from a file read (protects LLM context window)
 MAX_CONTENT_LENGTH = 4000
 
+
+# ─── TOOL 1: list_dir ───────────────────────────────────────
 
 def list_dir(path: str, guard: PathGuard) -> dict:
     """List files and subdirectories at the given path."""
@@ -47,6 +52,8 @@ def list_dir(path: str, guard: PathGuard) -> dict:
     }
 
 
+# ─── TOOL 2: read_file ──────────────────────────────────────
+
 def read_file(path: str, guard: PathGuard) -> dict:
     """Read the text content of a file (truncated if too long)."""
     allowed, reason = guard.validate(path, action="read_file")
@@ -76,10 +83,108 @@ def read_file(path: str, guard: PathGuard) -> dict:
         return {"success": False, "error": f"Erreur de lecture : {str(e)}"}
 
 
+# ─── TOOL 3: copy_file ──────────────────────────────────────
+
+def copy_file(args: str, guard: PathGuard) -> dict:
+    """
+    Copy a file from source to destination.
+    Args format: "source | destination"
+    """
+    parts = args.split("|", 1)
+    if len(parts) < 2:
+        return {"success": False, "error": "Format requis : copy_file | source | destination"}
+
+    source = parts[0].strip()
+    destination = parts[1].strip()
+
+    # Validate both paths via PathGuard
+    allowed, reason = guard.validate_copy(source, destination)
+    if not allowed:
+        return {"success": False, "error": reason}
+
+    resolved_src = guard.resolve(source)
+    resolved_dst = guard.resolve(destination)
+
+    if not os.path.isfile(resolved_src):
+        return {"success": False, "error": f"La source n'est pas un fichier : {resolved_src}"}
+
+    # Backup destination if it already exists (Rule 7)
+    backup_path = guard.backup_if_exists(destination)
+
+    try:
+        # Create parent directories if needed
+        os.makedirs(os.path.dirname(resolved_dst), exist_ok=True)
+        shutil.copy2(resolved_src, resolved_dst)
+
+        result = {
+            "success": True,
+            "source": resolved_src,
+            "destination": resolved_dst,
+            "message": f"Fichier copié avec succès.",
+        }
+        if backup_path:
+            result["backup"] = backup_path
+            result["message"] += f" Backup de l'ancien fichier : {backup_path}"
+        return result
+
+    except Exception as e:
+        return {"success": False, "error": f"Erreur de copie : {str(e)}"}
+
+
+# ─── TOOL 4: write_file ─────────────────────────────────────
+
+def write_file(args: str, guard: PathGuard) -> dict:
+    """
+    Write content to a file (create or overwrite).
+    Args format: "path | content"
+    """
+    parts = args.split("|", 1)
+    if len(parts) < 2:
+        return {"success": False, "error": "Format requis : write_file | chemin | contenu"}
+
+    path = parts[0].strip()
+    content = parts[1].strip()
+
+    # Validate path via PathGuard
+    allowed, reason = guard.validate(path, action="write_file")
+    if not allowed:
+        return {"success": False, "error": reason}
+
+    # Validate content size (Rule 8)
+    ok, size_reason = guard.validate_write_content(content)
+    if not ok:
+        return {"success": False, "error": size_reason}
+
+    resolved = guard.resolve(path)
+
+    # Backup if file already exists (Rule 7)
+    backup_path = guard.backup_if_exists(path)
+
+    try:
+        # Create parent directories if needed
+        os.makedirs(os.path.dirname(resolved), exist_ok=True)
+        with open(resolved, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        result = {
+            "success": True,
+            "path": resolved,
+            "chars_written": len(content),
+            "message": f"Fichier écrit avec succès ({len(content)} caractères).",
+        }
+        if backup_path:
+            result["backup"] = backup_path
+            result["message"] += f" Backup de l'ancien fichier : {backup_path}"
+        return result
+
+    except Exception as e:
+        return {"success": False, "error": f"Erreur d'écriture : {str(e)}"}
+
+
 # ─── Tool registry (used by agent_core) ────────────────────
 
 TOOLS_DESCRIPTION = """
-You have access to exactly 2 tools. Use them to help the user explore files.
+You have access to exactly 4 tools. Use them to help the user explore and manage files.
 
 TOOL 1: list_dir
   Description: Lists all files and subdirectories at a given path.
@@ -92,9 +197,26 @@ TOOL 2: read_file
   Usage: ACTION: read_file | <path>
   Example: ACTION: read_file | README.md
   Example: ACTION: read_file | src/config.yaml
+
+TOOL 3: copy_file
+  Description: Copies a file from a source path to a destination path.
+  Usage: ACTION: copy_file | <source> | <destination>
+  Example: ACTION: copy_file | report.md | backup/report_copy.md
+  Note: If the destination already exists, a .bak backup is created automatically.
+  Note: You CANNOT overwrite protected files (.py, .bat, .ps1, .sh, .exe, .dll).
+
+TOOL 4: write_file
+  Description: Creates a new file or overwrites an existing file with the given content.
+  Usage: ACTION: write_file | <path> | <content>
+  Example: ACTION: write_file | notes/summary.txt | This is the summary of the meeting.
+  Note: If the file already exists, a .bak backup is created automatically.
+  Note: You CANNOT write to protected extensions (.py, .bat, .ps1, .sh, .exe, .dll).
+  Note: Maximum content length is 50,000 characters.
 """
 
 TOOL_FUNCTIONS = {
     "list_dir": list_dir,
     "read_file": read_file,
+    "copy_file": copy_file,
+    "write_file": write_file,
 }
