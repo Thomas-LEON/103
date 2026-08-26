@@ -30,7 +30,8 @@ except ImportError:
     HAS_PPTX = False
 
 # Max characters to return from a file read (protects LLM context window)
-MAX_CONTENT_LENGTH = 4000
+# Upgraded for OSS Models (approx 25k tokens limit)
+MAX_CONTENT_LENGTH = 100000
 
 
 # ─── TOOL 1: list_dir ───────────────────────────────────────

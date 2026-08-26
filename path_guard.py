@@ -26,11 +26,11 @@ PROTECTED_EXTENSIONS = {
     ".cmd", ".vbs", ".js", ".msi", ".com", ".scr",
 }
 
-# Max file size for reading (500 KB)
-MAX_FILE_SIZE = 500 * 1024
+# Max file size for reading (5 MB)
+MAX_FILE_SIZE = 5 * 1024 * 1024
 
-# Max content size for write_file (50 000 chars)
-MAX_WRITE_SIZE = 50_000
+# Max content size for write_file (100 000 chars)
+MAX_WRITE_SIZE = 100_000
 
 
 class PathGuard:
