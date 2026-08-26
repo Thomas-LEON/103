@@ -158,7 +158,7 @@ def run_agent(
             else:
                 obs = (
                     f"ERROR: Unknown tool '{tool_name}'. "
-                    f"Available tools: list_dir, read_file, copy_file, write_file, move_file."
+                    f"Available tools: list_dir, read_file, copy_file, write_file, move_file, search_in_files, delete_file, create_dir, append_to_file."
                 )
                 step["events"].append(("❌ ERROR", obs))
 
@@ -224,6 +224,24 @@ def _format_observation(tool_name: str, result: dict) -> str:
 
     elif tool_name == "move_file":
         msg = f"SUCCESS: {result['message']}\nSource: {_sanitize_path(result['source'])}\nDestination: {_sanitize_path(result['destination'])}"
+        if result.get("backup"):
+            msg += f"\nBackup created."
+        return msg
+
+    elif tool_name == "search_in_files":
+        return (
+            f"Found {result['count']} matches for '{result['pattern']}':\n"
+            + "\n".join(result["results"])
+        )
+
+    elif tool_name == "delete_file":
+        return f"SUCCESS: {result['message']}"
+
+    elif tool_name == "create_dir":
+        return f"SUCCESS: {result['message']}\nPath: {_sanitize_path(result['path'])}"
+
+    elif tool_name == "append_to_file":
+        msg = f"SUCCESS: {result['message']}\nPath: {_sanitize_path(result['path'])}\nChars appended: {result['chars_added']}"
         if result.get("backup"):
             msg += f"\nBackup created."
         return msg

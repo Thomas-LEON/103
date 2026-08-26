@@ -72,8 +72,8 @@ class PathGuard:
             self._log(timestamp, "❌ BLOCKED", action, path, reason)
             return False, reason
 
-        # Rule 3: Path must exist (except for write_file where we create new files)
-        if action != "write_file" and not os.path.exists(resolved):
+        # Rule 3: Path must exist (except for write/create actions)
+        if action not in ("write_file", "create_dir", "append_to_file") and not os.path.exists(resolved):
             reason = f"Chemin introuvable : {resolved}"
             self._log(timestamp, "❌ NOT FOUND", action, path, reason)
             return False, reason
@@ -96,11 +96,11 @@ class PathGuard:
                     self._log(timestamp, "❌ BLOCKED", action, path, reason)
                     return False, reason
 
-        # Rule 9 (write actions): Protected extensions
-        if action in ("write_file", "copy_file_dst"):
+        # Rule 9 (write/delete actions): Protected extensions
+        if action in ("write_file", "copy_file_dst", "delete_file", "append_to_file"):
             ext = os.path.splitext(resolved)[1].lower()
             if ext in PROTECTED_EXTENSIONS:
-                reason = f"Extension protégée en écriture : {ext} — interdit de créer/écraser"
+                reason = f"Extension protégée : {ext} — opération interdite"
                 self._log(timestamp, "❌ BLOCKED", action, path, reason)
                 return False, reason
 
