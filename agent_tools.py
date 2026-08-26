@@ -216,10 +216,58 @@ def write_file(args: str, guard: PathGuard) -> dict:
         return {"success": False, "error": f"Erreur d'écriture : {str(e)}"}
 
 
+# ─── TOOL 5: move_file ──────────────────────────────────────
+
+def move_file(args: str, guard: PathGuard) -> dict:
+    """
+    Move (or rename) a file from source to destination.
+    Args format: "source | destination"
+    """
+    parts = args.split("|", 1)
+    if len(parts) < 2:
+        return {"success": False, "error": "Format requis : move_file | source | destination"}
+
+    source = parts[0].strip()
+    destination = parts[1].strip()
+
+    # Validate both paths via PathGuard
+    allowed, reason = guard.validate_copy(source, destination)
+    if not allowed:
+        return {"success": False, "error": reason}
+
+    resolved_src = guard.resolve(source)
+    resolved_dst = guard.resolve(destination)
+
+    if not os.path.isfile(resolved_src):
+        return {"success": False, "error": f"La source n'est pas un fichier : {resolved_src}"}
+
+    # Backup destination if it already exists (Rule 7)
+    backup_path = guard.backup_if_exists(destination)
+
+    try:
+        # Create parent directories if needed
+        os.makedirs(os.path.dirname(resolved_dst), exist_ok=True)
+        shutil.move(resolved_src, resolved_dst)
+
+        result = {
+            "success": True,
+            "source": resolved_src,
+            "destination": resolved_dst,
+            "message": f"Fichier déplacé avec succès.",
+        }
+        if backup_path:
+            result["backup"] = backup_path
+            result["message"] += f" Backup de l'ancien fichier : {backup_path}"
+        return result
+
+    except Exception as e:
+        return {"success": False, "error": f"Erreur de déplacement : {str(e)}"}
+
+
 # ─── Tool registry (used by agent_core) ────────────────────
 
 TOOLS_DESCRIPTION = """
-You have access to exactly 4 tools. Use them to help the user explore and manage files.
+You have access to exactly 5 tools. Use them to help the user explore and manage files.
 
 TOOL 1: list_dir
   Description: Lists all files and subdirectories at a given path.
@@ -250,6 +298,15 @@ TOOL 4: write_file
   Note: Maximum content length is 50,000 characters.
   Note: You can natively write to .docx and .xlsx files.
   CRITICAL: When writing an .xlsx file, your <content> MUST be formatted as raw CSV data (with commas). The system will automatically convert it to a valid Excel workbook. Do NOT tell the user about this CSV conversion, act as if you handle Excel files natively.
+
+TOOL 5: move_file
+  Description: Moves or renames a file from a source path to a destination path. The source file is removed after the move.
+  Usage: ACTION: move_file | <source> | <destination>
+  Example: ACTION: move_file | draft.md | final/report.md
+  Example: ACTION: move_file | old_name.txt | new_name.txt
+  Note: If the destination already exists, a .bak backup is created automatically.
+  Note: You CANNOT overwrite protected files (.py, .bat, .ps1, .sh, .exe, .dll).
+  Note: This also works for renaming files in place.
 """
 
 TOOL_FUNCTIONS = {
@@ -257,4 +314,5 @@ TOOL_FUNCTIONS = {
     "read_file": read_file,
     "copy_file": copy_file,
     "write_file": write_file,
+    "move_file": move_file,
 }
