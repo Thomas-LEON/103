@@ -7,7 +7,15 @@ Chaque outil passe par PathGuard avant toute opération I/O.
 
 import os
 import shutil
+import io
 from path_guard import PathGuard
+
+try:
+    import pandas as pd
+    import docx
+    HAS_OFFICE_LIBS = True
+except ImportError:
+    HAS_OFFICE_LIBS = False
 
 # Max characters to return from a file read (protects LLM context window)
 MAX_CONTENT_LENGTH = 4000
@@ -65,9 +73,22 @@ def read_file(path: str, guard: PathGuard) -> dict:
     if not os.path.isfile(resolved):
         return {"success": False, "error": f"Ce n'est pas un fichier : {resolved}"}
 
+    ext = os.path.splitext(resolved)[1].lower()
+
     try:
-        with open(resolved, "r", encoding="utf-8", errors="replace") as f:
-            content = f.read(MAX_CONTENT_LENGTH + 1)
+        if ext == ".docx":
+            if not HAS_OFFICE_LIBS:
+                return {"success": False, "error": "Librairies manquantes. Lancez: pip install pandas openpyxl python-docx"}
+            doc = docx.Document(resolved)
+            content = "\n".join([p.text for p in doc.paragraphs])
+        elif ext == ".xlsx":
+            if not HAS_OFFICE_LIBS:
+                return {"success": False, "error": "Librairies manquantes. Lancez: pip install pandas openpyxl python-docx"}
+            df = pd.read_excel(resolved)
+            content = df.to_csv(index=False)
+        else:
+            with open(resolved, "r", encoding="utf-8", errors="replace") as f:
+                content = f.read(MAX_CONTENT_LENGTH + 1)
 
         truncated = len(content) > MAX_CONTENT_LENGTH
         if truncated:
@@ -156,6 +177,7 @@ def write_file(args: str, guard: PathGuard) -> dict:
         return {"success": False, "error": size_reason}
 
     resolved = guard.resolve(path)
+    ext = os.path.splitext(resolved)[1].lower()
 
     # Backup if file already exists (Rule 7)
     backup_path = guard.backup_if_exists(path)
@@ -163,8 +185,21 @@ def write_file(args: str, guard: PathGuard) -> dict:
     try:
         # Create parent directories if needed
         os.makedirs(os.path.dirname(resolved), exist_ok=True)
-        with open(resolved, "w", encoding="utf-8") as f:
-            f.write(content)
+        
+        if ext == ".docx":
+            if not HAS_OFFICE_LIBS:
+                return {"success": False, "error": "Librairies manquantes. Lancez: pip install pandas openpyxl python-docx"}
+            doc = docx.Document()
+            doc.add_paragraph(content)
+            doc.save(resolved)
+        elif ext == ".xlsx":
+            if not HAS_OFFICE_LIBS:
+                return {"success": False, "error": "Librairies manquantes. Lancez: pip install pandas openpyxl python-docx"}
+            df = pd.read_csv(io.StringIO(content))
+            df.to_excel(resolved, index=False)
+        else:
+            with open(resolved, "w", encoding="utf-8") as f:
+                f.write(content)
 
         result = {
             "success": True,
@@ -197,6 +232,7 @@ TOOL 2: read_file
   Usage: ACTION: read_file | <path>
   Example: ACTION: read_file | README.md
   Example: ACTION: read_file | src/config.yaml
+  Note: You can natively read .txt, .md, .csv, .docx, and .xlsx files.
 
 TOOL 3: copy_file
   Description: Copies a file from a source path to a destination path.
@@ -212,6 +248,8 @@ TOOL 4: write_file
   Note: If the file already exists, a .bak backup is created automatically.
   Note: You CANNOT write to protected extensions (.py, .bat, .ps1, .sh, .exe, .dll).
   Note: Maximum content length is 50,000 characters.
+  Note: You can natively write to .docx and .xlsx files.
+  CRITICAL: When writing an .xlsx file, your <content> MUST be formatted as raw CSV data (with commas). The system will automatically convert it to a valid Excel workbook.
 """
 
 TOOL_FUNCTIONS = {
