@@ -158,7 +158,7 @@ def run_agent(
             else:
                 obs = (
                     f"ERROR: Unknown tool '{tool_name}'. "
-                    f"Available tools: list_dir, read_file, copy_file, write_file, move_file, search_in_files, delete_file, create_dir, append_to_file."
+                    f"Available tools: list_dir, read_file, copy_file, write_file, move_file, search_in_files, delete_file, create_dir, append_to_file, file_info, tree."
                 )
                 step["events"].append(("❌ ERROR", obs))
 
@@ -245,6 +245,15 @@ def _format_observation(tool_name: str, result: dict) -> str:
         if result.get("backup"):
             msg += f"\nBackup created."
         return msg
+
+    elif tool_name == "file_info":
+        msg = f"Path: {_sanitize_path(result['path'])}\nType: {result['type']}\nSize: {result['size_bytes']} bytes\nCreated: {result['created']}\nModified: {result['modified']}"
+        if "extension" in result:
+            msg += f"\nExtension: {result['extension']}"
+        return msg
+
+    elif tool_name == "tree":
+        return f"Tree of {_sanitize_path(result['path'])}:\n{result['tree']}"
 
     else:
         return f"SUCCESS: {result.get('message', str(result))}"

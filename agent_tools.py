@@ -423,14 +423,12 @@ def append_to_file(args: str, guard: PathGuard) -> dict:
         return {"success": False, "error": reason}
 
     resolved = guard.resolve(path)
-    if not os.path.isfile(resolved):
-        return {"success": False, "error": f"Fichier introuvable (append requiert un fichier existant) : {resolved}"}
         
     ext = os.path.splitext(resolved)[1].lower()
     if ext in [".docx", ".xlsx", ".pdf", ".pptx"]:
         return {"success": False, "error": f"Impossible d'utiliser append_to_file sur des fichiers binaires ({ext}). Utilisez write_file."}
 
-    # Backup before appending
+    # Backup before appending (only if it exists)
     backup_path = guard.backup_if_exists(path)
 
     try:
@@ -453,15 +451,92 @@ def append_to_file(args: str, guard: PathGuard) -> dict:
         return {"success": False, "error": f"Erreur d'ajout : {str(e)}"}
 
 
+# ─── TOOL 10: file_info ─────────────────────────────────────
+import time
+
+def file_info(path: str, guard: PathGuard) -> dict:
+    """Get metadata about a file or directory."""
+    allowed, reason = guard.validate(path, action="list_dir")
+    if not allowed:
+        return {"success": False, "error": reason}
+
+    resolved = guard.resolve(path)
+    if not os.path.exists(resolved):
+        return {"success": False, "error": f"Chemin introuvable : {resolved}"}
+
+    stat = os.stat(resolved)
+    is_dir = os.path.isdir(resolved)
+    
+    info = {
+        "success": True,
+        "path": resolved,
+        "type": "directory" if is_dir else "file",
+        "size_bytes": stat.st_size,
+        "created": time.ctime(stat.st_ctime),
+        "modified": time.ctime(stat.st_mtime),
+    }
+    if not is_dir:
+        info["extension"] = os.path.splitext(resolved)[1].lower()
+    return info
+
+
+# ─── TOOL 11: tree ──────────────────────────────────────────
+
+def tree(path: str, guard: PathGuard) -> dict:
+    """Return the recursive directory structure as text."""
+    allowed, reason = guard.validate(path, action="list_dir")
+    if not allowed:
+        return {"success": False, "error": reason}
+
+    resolved = guard.resolve(path)
+    if not os.path.isdir(resolved):
+        return {"success": False, "error": f"Dossier introuvable : {resolved}"}
+
+    def build_tree(dir_path, prefix="", depth=0, max_depth=3):
+        if depth > max_depth:
+            return [prefix + "└── ... (limite de profondeur atteinte)"]
+        
+        try:
+            items = sorted(os.listdir(dir_path))
+        except PermissionError:
+            return [prefix + "└── [Accès refusé]"]
+            
+        lines = []
+        for i, item in enumerate(items):
+            is_last = (i == len(items) - 1)
+            connector = "└── " if is_last else "├── "
+            full_path = os.path.join(dir_path, item)
+            
+            if os.path.isdir(full_path):
+                lines.append(prefix + connector + "📁 " + item)
+                extension = "    " if is_last else "│   "
+                lines.extend(build_tree(full_path, prefix + extension, depth + 1, max_depth))
+            else:
+                lines.append(prefix + connector + "📄 " + item)
+        return lines
+
+    tree_lines = [os.path.basename(resolved) or "."] + build_tree(resolved)
+    tree_output = "\n".join(tree_lines)
+    
+    # Sécurité anti-spam pour le contexte du LLM
+    if len(tree_output) > 10000:
+        tree_output = tree_output[:10000] + "\n... [ARBORESCENCE TRONQUÉE (trop grande)]"
+
+    return {
+        "success": True,
+        "path": resolved,
+        "tree": tree_output
+    }
+
+
 # ─── Tool registry (used by agent_core) ────────────────────
 
 TOOLS_DESCRIPTION = """
-You have access to exactly 9 tools. Use them to help the user explore and manage files.
+You have access to exactly 11 tools. Use them to help the user explore and manage files.
 
 TOOL 1: list_dir
   Description: Lists all files and subdirectories at a given path.
   Usage: ACTION: list_dir | <path>
-  Example: ACTION: list_dir | .
 
 TOOL 2: read_file
   Description: Reads the text content of a single file.
@@ -471,12 +546,11 @@ TOOL 2: read_file
 TOOL 3: copy_file
   Description: Copies a file from a source path to a destination path.
   Usage: ACTION: copy_file | <source> | <destination>
-  Note: If the destination already exists, a .bak backup is created automatically.
 
 TOOL 4: write_file
   Description: Creates a new file or overwrites an existing file with the given content.
   Usage: ACTION: write_file | <path> | <content>
-  Note: You can natively write to .docx and .xlsx files. For .xlsx, you MUST output raw CSV data (with commas). Do NOT tell the user about this CSV conversion.
+  Note: You can natively write to .docx and .xlsx files. For .xlsx, output raw CSV data (with commas).
 
 TOOL 5: move_file
   Description: Moves or renames a file from a source path to a destination path.
@@ -485,22 +559,27 @@ TOOL 5: move_file
 TOOL 6: search_in_files
   Description: Search for a specific text pattern inside all text files within a directory.
   Usage: ACTION: search_in_files | <directory> | <pattern>
-  Example: ACTION: search_in_files | reports/ | APT29
 
 TOOL 7: delete_file
   Description: Deletes a file. A backup is automatically saved before deletion.
   Usage: ACTION: delete_file | <path>
-  Example: ACTION: delete_file | drafts/old_note.txt
 
 TOOL 8: create_dir
   Description: Creates a new empty directory.
   Usage: ACTION: create_dir | <path>
-  Example: ACTION: create_dir | analysis_2026
 
 TOOL 9: append_to_file
   Description: Adds text to the END of an existing file (without overwriting it).
   Usage: ACTION: append_to_file | <path> | <content_to_add>
-  Note: Does NOT work on binary files (.docx, .xlsx, etc).
+
+TOOL 10: file_info
+  Description: Gets metadata about a file or folder (size, creation date, modification date).
+  Usage: ACTION: file_info | <path>
+
+TOOL 11: tree
+  Description: Returns a recursive visual tree of the directory structure (up to 3 levels deep).
+  Usage: ACTION: tree | <directory_path>
+  Example: ACTION: tree | .
 """
 
 TOOL_FUNCTIONS = {
@@ -513,4 +592,6 @@ TOOL_FUNCTIONS = {
     "delete_file": delete_file,
     "create_dir": create_dir,
     "append_to_file": append_to_file,
+    "file_info": file_info,
+    "tree": tree,
 }
