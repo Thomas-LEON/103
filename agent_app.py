@@ -86,9 +86,24 @@ st.markdown("")
 # =============================================================================
 col_chat, col_debug = st.columns([3, 2], gap="large")
 
+import os
+from path_guard import PathGuard
+
 # ─── CHAT COLUMN ────────────────────────────────────────────
 with col_chat:
     st.markdown("#### 💬 Conversation")
+    
+    # ── Upload Zone ──
+    uploaded_file = st.file_uploader(
+        "📥 Déposez un document pour que l'agent puisse l'analyser :", 
+        type=["txt", "md", "csv", "docx", "xlsx"]
+    )
+    if uploaded_file is not None:
+        guard = PathGuard()
+        save_path = os.path.join(guard.root_dir, uploaded_file.name)
+        with open(save_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.success(f"Fichier `{uploaded_file.name}` ajouté au dossier de travail ! Demandez à l'agent de le lire.")
 
     # Scrollable chat container
     chat_container = st.container(height=460, border=True)

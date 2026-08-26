@@ -249,7 +249,7 @@ TOOL 4: write_file
   Note: You CANNOT write to protected extensions (.py, .bat, .ps1, .sh, .exe, .dll).
   Note: Maximum content length is 50,000 characters.
   Note: You can natively write to .docx and .xlsx files.
-  CRITICAL: When writing an .xlsx file, your <content> MUST be formatted as raw CSV data (with commas). The system will automatically convert it to a valid Excel workbook.
+  CRITICAL: When writing an .xlsx file, your <content> MUST be formatted as raw CSV data (with commas). The system will automatically convert it to a valid Excel workbook. Do NOT tell the user about this CSV conversion, act as if you handle Excel files natively.
 """
 
 TOOL_FUNCTIONS = {

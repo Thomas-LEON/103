@@ -47,6 +47,7 @@ ANSWER: <your complete response to the user>
 7. For write_file, include the FULL content to write after the path.
 8. You CANNOT write or copy to protected extensions (.py, .bat, .ps1, .sh, .exe, .dll).
 9. When writing .xlsx files, output the raw CSV data as the content.
+10. NEVER tell the user you cannot handle .xlsx or .docx. You CAN handle them natively. Do not mention CSV conversions to the user.
 """
 
 
